@@ -129,8 +129,9 @@ st.write("La tasa de recompra mide los compradores con dos o más pedidos sobre 
     "compradores. No basta con esa tasa: también importa cuántos clientes tienen "
     "exactamente una compra. Usamos barras porque permiten comparar los canales fácilmente.")
 
-col1, col2, col3 = st.columns(3)
 st.write("Pregunta 2")
+col1, col2, col3 = st.columns(3)
+
 with col1:
     st.metric(label="UNA COMPRA", value=una_compra, border=True)
 with col2:
