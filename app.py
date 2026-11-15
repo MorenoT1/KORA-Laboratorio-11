@@ -105,7 +105,7 @@ pedidos_f = df_pedidos[df_pedidos.id_cliente.isin(df_final.id_cliente)].copy()
 st.subheader("Ingresos por categoría")
 if not pedidos_f.empty:
     cat = pedidos_f.groupby("categoria", as_index=False)["ingreso_neto_cop"].sum()
-    cat["millones"] = cat.ingreso_neto_cop / 1e6
+    cat["millones"] = cat["ingreso_neto_cop"] / 1000000
     fig = px.bar(cat.sort_values("millones"),
         x="millones", y="categoria", orientation="h",
         labels={"millones": "Ingresos (millones de COP)", "categoria": "Categoría"}
@@ -148,7 +148,10 @@ df_canales = (df_compradores.groupby("canal_adquisicion", as_index=False).agg(
         recompradores=("recompra", "sum"),
         una_compra=("una_compra", "sum")))
 
-if not df_canales.empty:df_canales["tasa_recompra"] = (df_canales.recompradores / df_canales.compradores * 100).round(1)
+if not df_canales.empty:
+    df_canales["tasa_recompra"] = (
+        df_canales.recompradores / df_canales.compradores * 100
+    ).round(1)
 
 izquierda, derecha = st.columns(2)
 
@@ -177,24 +180,29 @@ with derecha:
 
 st.subheader("Resultados")
 if not df_canales.empty:
-    mayor = df_canales.sort_values("una_compra", ascending=False).iloc[0]
-    menor = df_canales.sort_values("tasa_recompra").iloc[0]
+    tabla_mayor = df_canales.sort_values("una_compra", ascending=False)
+    mayor = tabla_mayor.iloc[0]
+    tabla_menor = df_canales.sort_values("tasa_recompra")
+    menor = tabla_menor.iloc[0]
 
     if mayor.canal_adquisicion == menor.canal_adquisicion:
-        st.write(f"En esta selección, {mayor.canal_adquisicion} tiene más clientes con una "
-            "compra y la menor tasa de recompra. Esto no siempre tiene que coincidir.")
+        st.write("El canal con más clientes de una compra es:", mayor.canal_adquisicion)
+        st.write("Este también tiene la menor tasa de recompra. No siempre coinciden.")
     else:
-        st.write(f"El mayor volumen está en {mayor.canal_adquisicion}, pero la menor "
-            f"tasa de recompra está en {menor.canal_adquisicion}. No son lo mismo.")
+        st.write("Canal con más clientes de una compra:", mayor.canal_adquisicion)
+        st.write("Canal con menor tasa de recompra:", menor.canal_adquisicion)
+        st.write("Por lo tanto, no necesariamente coinciden.")
 
     if mayor.una_compra > 0:
-        st.subheader("Pregunta 6 -Canal recomendado")
-        st.write(f"Recomendamos comenzar por {mayor.canal_adquisicion}, con "
-            f"{mayor.una_compra} clientes que han comprado una sola vez y "
-            f"{mayor.tasa_recompra}% de recompra. Es un canal con una buena "
-            "cantidad de posibles segundas compras. Sin embargo, no sabemos por "
-            "qué estos clientes no han regresado. Probaríamos una campaña con un "
-            "grupo de control y compararíamos la tasa de segunda compra a 30 días.")
+        st.subheader("Pregunta 6 - Canal recomendado")
+        respuesta = "Recomendamos comenzar por " + mayor.canal_adquisicion
+        respuesta = respuesta + ", con " + str(mayor.una_compra) + " clientes con una sola compra."
+        respuesta = respuesta + " Su tasa de recompra es " + str(mayor.tasa_recompra) + "%."
+        respuesta = respuesta + (" Es un canal con posibles segundas compras. "
+            "Sin embargo, no sabemos por qué estos clientes no han regresado. "
+            "Probaríamos una campaña con un grupo de control y compararíamos "
+            "la tasa de segunda compra a 30 días.")
+        st.write(respuesta)
     else:
         st.info("No hay clientes con una compra para recomendar un canal.")
 else:
