@@ -88,7 +88,7 @@ with a:
 with b:
     st.metric(label="PEDIDOS", value=int(pedidos), border=True)
 with c:
-    st.metric(label="INGRESO NETO", value=f"${ingreso / 1e6:.1f} M", border=True)
+    st.metric(label="INGRESO NETO", value=round(ingreso / 1000000, 1), border=True)
 with d:
     st.metric(label="RECOMPRA", value=valor_recompra, border=True)
 
@@ -106,8 +106,7 @@ st.subheader("Ingresos por categoría")
 if not pedidos_f.empty:
     cat = pedidos_f.groupby("categoria", as_index=False)["ingreso_neto_cop"].sum()
     cat["millones"] = cat.ingreso_neto_cop / 1e6
-    fig = px.bar(
-        cat.sort_values("millones"),
+    fig = px.bar(cat.sort_values("millones"),
         x="millones", y="categoria", orientation="h",
         labels={"millones": "Ingresos (millones de COP)", "categoria": "Categoría"}
     )
@@ -125,17 +124,19 @@ else:
     st.info("No hay pedidos para esta selección.")
 
 st.subheader("Segunda compra por canal")
+st.write("Pregunta 1")
 st.write("La tasa de recompra mide los compradores con dos o más pedidos sobre el total de "
     "compradores. No basta con esa tasa: también importa cuántos clientes tienen "
     "exactamente una compra. Usamos barras porque permiten comparar los canales fácilmente.")
 
 col1, col2, col3 = st.columns(3)
+st.write("Pregunta 2")
 with col1:
     st.metric(label="UNA COMPRA", value=una_compra, border=True)
 with col2:
     st.metric(label="% UNA COMPRA", value=valor_una_compra, border=True)
 with col3:
-    st.metric(label="TICKET PROMEDIO", value=f"${ticket:,.0f}", border=True)
+    st.metric(label="TICKET PROMEDIO", value=round(ticket), border=True)
 
 df_compradores = df_final.query("n_pedidos > 0").copy()
 df_compradores["recompra"] = df_compradores.n_pedidos >= 2
@@ -151,6 +152,7 @@ if not df_canales.empty:df_canales["tasa_recompra"] = (df_canales.recompradores 
 izquierda, derecha = st.columns(2)
 
 with izquierda:
+    st.write("Pregunta 3")
     st.markdown("**Tasa de recompra por canal**")
     if not df_canales.empty:
         fig = px.bar(df_canales.sort_values("tasa_recompra"),
@@ -162,6 +164,7 @@ with izquierda:
         st.info("No hay compradores en esta selección.")
 
 with derecha:
+    st.write("Pregunta 4")
     st.markdown("**Clientes con una compra por canal**")
     if not df_canales.empty:
         fig = px.bar(df_canales.sort_values("una_compra"),
@@ -184,7 +187,7 @@ if not df_canales.empty:
             f"tasa de recompra está en {menor.canal_adquisicion}. No son lo mismo.")
 
     if mayor.una_compra > 0:
-        st.subheader("Canal recomendado")
+        st.subheader("Pregunta 6 -Canal recomendado")
         st.write(f"Recomendamos comenzar por {mayor.canal_adquisicion}, con "
             f"{mayor.una_compra} clientes que han comprado una sola vez y "
             f"{mayor.tasa_recompra}% de recompra. Es un canal con una buena "
